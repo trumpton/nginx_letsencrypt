@@ -35,7 +35,7 @@ sudo rm -f /etc/nginx/sites-enabled/default
 
 sudo mkdir -p $1/var/www/$2
 sudo mkdir -p $1/var/log/nginx
-sudo /usr/bin/bash -c "cat $SITESFILE | sed -e 's/RELAYPORT/$3/g' | sed -e 's*RWROOT*$1*g' | sed -e s/HOSTNAME/$2/g > /etc/nginx/sites-enabled/$2"
+sudo /usr/bin/bash -c "cat site-install.cfg | sed -e 's*RWROOT*$1*g' | sed -e s/HOSTNAME/$2/g > /etc/nginx/sites-enabled/$2"
 sudo /usr/bin/bash -c "cat index.html | sed -e s/HOSTNAME/$2/g > $1/var/www/$2/index.html"
 
 sudo systemctl start nginx
@@ -64,6 +64,9 @@ sudo /bin/rm -rf $1/etc/letsencrypt
 sudo mkdir -p $1/etc/letsencrypt
 sudo ln -s $1/etc/letsencrypt /etc/letsencrypt
 sudo letsencrypt certonly -a webroot --webroot-path=$1/var/www/$2 -d $2
+
+sudo /usr/bin/bash -c "cat $SITESFILE | sed -e 's/RELAYPORT/$3/' | sed -e 's*RWROOT*$1*g' | sed -e s/HOSTNAME/$2/g > /etc/nginx/sites-enabled/$2"
+sudo systemctl restart nginx
 
 echo ""
 echo "Point a web browser at https://$2/ (note https)"
