@@ -3,12 +3,30 @@
 hash -r
 
 if [[ "$2" == "" ]]; then
-  echo "usage: nginx.sh /path/to/refresh/folder fully.qualified.domain.name"
+  echo "usage: nginx.sh /writeable/path domain.name [hostname:port]"
   echo ""
-  echo "Note: the refresh folder should be in an area which is writeable"
-  echo "      as it is used to store and refresh the letsencrypt keys"
+  echo " /writeable/path   - Path on the current system which is"
+  echo "                     guaranteed to be writeable to root"
+  echo "                     This is used to store and configure"
+  echo "                     letsencrypt."
+  echo ""
+  echo " domain.name       - Fully qualified domain name which"
+  echo "                     points to the modem's public IP"
+  echo "                     address."
+  echo ""
+  echo " hostname:port     - Optional server and port number of"
+  echo "                     a http server or application to"
+  echo "                     receive all requests. i.e. the"
+  echo "                     https web server will be configured"
+  echo "                     as a proxy."
   echo ""
   exit
+fi
+
+if [[ "$3" == "" ]]; then
+  SITESFILE="site-server.cfg"
+else
+  SITESFILE="site-forward.cfg"
 fi
 
 sudo apt-get update
@@ -17,7 +35,7 @@ sudo rm -f /etc/nginx/sites-enabled/default
 
 sudo mkdir -p $1/var/www/$2
 sudo mkdir -p $1/var/log/nginx
-sudo /usr/bin/bash -c "cat site.cfg | sed -e 's*RWROOT*$1*g' | sed -e s/HOSTNAME/$2/g > /etc/nginx/sites-enabled/$2"
+sudo /usr/bin/bash -c "cat $SITESFILE | sed -e 's/RELAYPORT/$3/g' | sed -e 's*RWROOT*$1*g' | sed -e s/HOSTNAME/$2/g > /etc/nginx/sites-enabled/$2"
 sudo /usr/bin/bash -c "cat index.html | sed -e s/HOSTNAME/$2/g > $1/var/www/$2/index.html"
 
 sudo systemctl start nginx
